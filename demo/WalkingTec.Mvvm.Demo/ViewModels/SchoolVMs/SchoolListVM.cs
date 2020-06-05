@@ -9,13 +9,33 @@ namespace WalkingTec.Mvvm.Demo.ViewModels.SchoolVMs
 {
     public class SchoolListVM : BasePagedListVM<School_View, SchoolSearcher>
     {
+
+        public SchoolListVM()
+        {
+            NeedPage = false;
+        }
+
+
+        public override string SetFullRowBgColor(object entity)
+        {
+            var t = entity as School_View;
+            if (t.SchoolType == SchoolTypeEnum.PRI)
+            {
+                return "FF0000";
+            }
+            else
+            {
+                return base.SetFullRowBgColor(entity);
+            }
+        }
+
         protected override List<GridAction> InitGridAction()
         {
             return new List<GridAction>
             {
                 this.MakeStandardAction("School", GridActionStandardTypesEnum.Create, "新建","", dialogWidth: 800),
-                this.MakeStandardAction("School", GridActionStandardTypesEnum.Edit, "修改","", dialogWidth: 800).SetHideOnToolBar(false),
-                this.MakeStandardAction("School", GridActionStandardTypesEnum.Delete, "删除","", dialogWidth: 800),
+                this.MakeStandardAction("School", GridActionStandardTypesEnum.Edit, "修改","", dialogWidth: 800).SetHideOnToolBar(false).SetPromptMessage("你确定要修改么？").SetButtonClass("layui-btn-normal"),
+                this.MakeStandardAction("School", GridActionStandardTypesEnum.Delete, "删除","", dialogWidth: 800).SetPromptMessage("你确定要删除么？").SetButtonClass("layui-btn-danger"),
                 this.MakeStandardAction("School", GridActionStandardTypesEnum.Details, "详细","", dialogWidth: 800),
                 this.MakeAction("School","EditIndex","列表编辑","列表编辑", GridActionParameterTypesEnum.NoId,dialogWidth:800).SetShowDialog(false).SetIsRedirect
                 (true),
@@ -39,7 +59,7 @@ namespace WalkingTec.Mvvm.Demo.ViewModels.SchoolVMs
                 this.MakeGridHeader(x => x.SchoolType),
                 this.MakeGridHeader(x => "test").SetFormat((a,b)=>{
                     return this.UIService.MakeScriptButton(ButtonTypesEnum.Button,"测试","alert('aaa');");
-                }).SetHeader("测试"),
+                }).SetHeader("测试").SetDisableExport(),
                 this.MakeGridHeader(x => x.Remark),
                 this.MakeGridHeaderAction(width: 500)
             };

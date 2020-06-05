@@ -12,32 +12,45 @@ window.ff = {
   DONOTUSE_Text_PleaseSelect: "",
   DONOTUSE_Text_FailedLoadData: "",
 
-  SetCookie: function (name, value, allwindow) {
-    var cookiePrefix = '', windowGuid = '';
+    SetCookie: function (name, value, allwindow) {
+        try {
+            var cookiePrefix = '', windowGuid = '';
 
-    if ("undefined" !== typeof DONOTUSE_COOKIEPRE) {
-      cookiePrefix = DONOTUSE_COOKIEPRE;
-    }
-    if ("undefined" !== typeof DONOTUSE_WINDOWGUID) {
-      windowGuid = DONOTUSE_WINDOWGUID;
-    }
+            if ("undefined" !== typeof DONOTUSE_COOKIEPRE) {
+                cookiePrefix = DONOTUSE_COOKIEPRE;
+            }
+            if ("undefined" !== typeof DONOTUSE_WINDOWGUID) {
+                windowGuid = DONOTUSE_WINDOWGUID;
+            }
 
-    if (allwindow) {
-      $.cookie(cookiePrefix + name, value);
-    }
-    else {
-      $.cookie(cookiePrefix + windowGuid + name, value);
-    }
+            if (allwindow) {
+                $.cookie(cookiePrefix + name, value);
+            }
+            else {
+                $.cookie(cookiePrefix + windowGuid + name, value);
+            }
+        }
+        catch (e) {  }
   },
 
-  GetCookie: function (name, allwindow) {
-    if (allwindow) {
-      return $.cookie(DONOTUSE_COOKIEPRE + name);
-    }
-    else {
-      return $.cookie(DONOTUSE_COOKIEPRE + DONOTUSE_WINDOWGUID + name);
+    GetCookie: function (name, allwindow) {
+        try {
+            var cookiePrefix = '', windowGuid = '';
+            if ("undefined" !== typeof DONOTUSE_COOKIEPRE) {
+                cookiePrefix = DONOTUSE_COOKIEPRE;
+            }
+            if ("undefined" !== typeof DONOTUSE_WINDOWGUID) {
+                windowGuid = DONOTUSE_WINDOWGUID;
+            }
+           if (allwindow) {
+               return $.cookie(cookiePrefix + name);
+            }
+            else {
+               return $.cookie(cookiePrefix + windowGuid + name);
 
-    }
+            }
+        }
+        catch(e){ }
   },
 
   GetSelections: function (gridId) {
@@ -99,14 +112,24 @@ window.ff = {
     return layui.table.checkStatus(gridId).isAll;
   },
 
-  Alert: function (msg) {
-    var layer = layui.layer;
-    layer.alert(msg);
+  Alert: function (msg,title) {
+      var layer = layui.layer;
+      if (title != undefined) {
+          layer.alert(msg, { title: title });
+      }
+      else {
+          layer.alert(msg);
+      }
   },
 
-  Msg: function (msg) {
+    Msg: function (msg, title) {
     var layer = layui.layer;
-    layer.msg(msg);
+        if (title != undefined) {
+            layer.msg(msg, { title: title });
+        }
+        else {
+            layer.msg(msg);
+        }
   },
 
   LoadPage: function (url, newwindow, title, para) {
@@ -138,9 +161,9 @@ window.ff = {
             child.document.close();
             $(child.document).ready(function () {
               setTimeout(function () {
-                $('#Lay_app_body_main', child.document).html(data);
+                  $('#LAY_app_body', child.document).html(data);
                 $(child.document).attr("title", title);
-              }, 500);
+              }, 100);
             });
           }
           layer.close(index);
@@ -167,6 +190,7 @@ window.ff = {
     url = url.toLowerCase();
     if (url.indexOf("http://") === 0 || url.indexOf("https://") === 0) {
       $('#' + where).html("<iframe frameborder='no' border='0' height='100%' src='" + url + "'></iframe>");
+        $('#' + where).css("overflow-y", "auto");
     }
     else {
       var layer = layui.layer, index = layer.load(2);
@@ -174,7 +198,8 @@ window.ff = {
         url: decodeURIComponent(url),
         type: 'GET',
         success: function (data) {
-          $('#' + where).html(data);
+            $('#' + where).html(data);
+            $('#' + where).css("overflow-y", "scroll");
           layer.close(index);
         },
         error: function (xhr, status, error) {
@@ -267,7 +292,7 @@ window.ff = {
     });
   },
 
-  BgRequest: function (url, para) {
+  BgRequest: function (url, para,divid) {
     var layer = layui.layer;
     var index = layer.load(2);
     var getpost = "GET";
@@ -295,8 +320,9 @@ window.ff = {
           eval(str);
         }
         else {
-          var did = $.cookie("divid");
-          $("#" + did).html(str);
+            data = "<div id='" + $.cookie("divid") + "' class='layui-card-body donotuse_pdiv'>" + str + "</div>";
+            var p = $("#" + divid).parent();
+            p.html(data);
         }
       }
     });
@@ -314,8 +340,10 @@ window.ff = {
     else {
       wid += "," + windowid;
     }
-    this.SetCookie("windowids", wid);
-    this.SetCookie("windowguid", DONOTUSE_WINDOWGUID, true);
+      this.SetCookie("windowids", wid);
+      if ("undefined" !== typeof DONOTUSE_WINDOWGUID) {
+          this.SetCookie("windowguid", DONOTUSE_WINDOWGUID, true);
+      }
     var getpost = "GET";
     if (para !== undefined) {
       getpost = "Post";
@@ -335,8 +363,8 @@ window.ff = {
           return false;
         }
         ff.SetCookie("windowids", owid);
-        if (request.responseText !== undefined && request.responseText !== "") {
-          layer.alert(request.responseText);
+          if (xhr.responseText !== undefined && xhr.responseText !== "") {
+              layer.alert(xhr.responseText);
         }
         else {
           layer.alert(ff.DONOTUSE_Text_LoadFailed);
@@ -527,7 +555,7 @@ window.ff = {
         }
 
         if (controltype === "combo") {
-          $('#' + target).html('<option value = "">' + ff.DONOTUSE_Text_PleaseSelect + '</option>');
+            $('#' + target).html('<option value = ""  selected>' + ff.DONOTUSE_Text_PleaseSelect + '</option>');
           if (data.Data !== undefined && data.Data !== null) {
             for (i = 0; i < data.Data.length; i++) {
                 item = data.Data[i];
@@ -540,8 +568,14 @@ window.ff = {
               }
             }
           }
-          form.render('select');
-        }
+            var linkto = $('#' + target).attr("linkto");
+            while (linkto !== undefined) {
+                var t = $('#' + linkto);
+                t.html('<option value = ""  selected>' + ff.DONOTUSE_Text_PleaseSelect + '</option>');
+                linkto = t.attr("linkto");
+            }
+            form.render('select');
+       }
         if (controltype === "checkbox") {
           $('#' + target).html('');
           for (i = 0; i < data.Data.length; i++) {
@@ -616,8 +650,8 @@ window.ff = {
       if (/^checkbox|radio$/.test(item.type) && !item.checked) return;
       if (filter.hasOwnProperty(item.name)) {
         var temp = filter[item.name];
-        if (!(temp instanceof Array));
-        temp = [temp];
+        if (!(temp instanceof Array))
+          temp = [temp];
         temp.push(item.value);
         filter[item.name] = temp;
       }
@@ -687,16 +721,16 @@ window.ff = {
       tab = " .layadmin-tabsbody-item.layui-show";
     }
     var tables = $('#' + dialogid + tab + ' table[id]');
-    if (tables.length > index) {
-      layui.table.reload(tables[index].id);
-    }
-    else {
-      var searchBtns = $('#' + dialogid + tab + ' form a[class*=layui-btn]');
+    var searchBtns = $('#' + dialogid + tab + ' form a[class*=layui-btn]');
       if (searchBtns.length > index) {
-        searchBtns[index].click();
+          searchBtns[index].click();
       }
-    }
-  },
+      else {
+          if (tables.length > index) {
+              layui.table.reload(tables[index].id);
+          }
+      }
+    },
 
   AddGridRow: function (gridid, option, data) {
     var loaddata = layui.table.cache[gridid];
